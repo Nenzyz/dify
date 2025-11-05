@@ -1,0 +1,114 @@
+# ==================================================================
+# Dify MCP Server Docker Compose Configuration
+# ==================================================================
+#
+# This file extends the main docker-compose.yaml to add the MCP server.
+#
+# Usage:
+#   docker-compose -f docker-compose.yaml -f docker-compose.mcp.yaml up
+#
+# Or with profiles:
+#   docker-compose -f docker-compose.yaml -f docker-compose.mcp.yaml --profile mcp up
+#
+# ==================================================================
+
+version: '3'
+
+services:
+  # MCP Server - Model Context Protocol server for Dify
+  # Provides programmatic access to Dify workflows, agents, and knowledge bases
+  mcp-server:
+    image: langgenius/dify-mcp-server:latest
+    # For development, build from source:
+    # build:
+    #   context: ../dify-mcp-server
+    #   dockerfile: Dockerfile
+    restart: always
+    profiles:
+      - mcp
+    environment:
+      # MCP Server Configuration
+      MCP_SERVER_HOST: ${MCP_SERVER_HOST:-0.0.0.0}
+      MCP_SERVER_PORT: ${MCP_SERVER_PORT:-3000}
+      MCP_LOG_LEVEL: ${MCP_LOG_LEVEL:-INFO}
+
+      # Authentication
+      MCP_API_KEY: ${MCP_API_KEY:-}  # Optional: API key for MCP client authentication
+
+      # Dify Connection
+      DIFY_API_URL: ${DIFY_API_URL:-http://api:5001}
+      DIFY_CONSOLE_API_URL: ${DIFY_CONSOLE_API_URL:-http://api:5001/console/api}
+      DIFY_API_KEY: ${DIFY_MCP_API_KEY:-}  # Dify API key for MCP server to use
+
+      # Database Connection (for direct reads - read-only recommended)
+      DIFY_DB_HOST: ${DB_HOST:-db}
+      DIFY_DB_PORT: ${DB_PORT:-5432}
+      DIFY_DB_NAME: ${DB_DATABASE:-dify}
+      DIFY_DB_USER: ${MCP_DB_USER:-postgres}
+      DIFY_DB_PASSWORD: ${DB_PASSWORD:-difyai123456}
+      DIFY_DB_POOL_SIZE: ${MCP_DB_POOL_SIZE:-10}
+
+      # Redis Connection (optional, for caching)
+      REDIS_URL: ${MCP_REDIS_URL:-redis://redis:6379/2}
+      CACHE_TTL: ${MCP_CACHE_TTL:-300}
+
+      # Features
+      ENABLE_DIRECT_DB_ACCESS: ${MCP_ENABLE_DIRECT_DB_ACCESS:-true}
+      ENABLE_EXPORT_IMPORT: ${MCP_ENABLE_EXPORT_IMPORT:-true}
+      ENABLE_CACHING: ${MCP_ENABLE_CACHING:-true}
+
+      # Limits
+      MAX_WORKFLOW_NODES: ${MCP_MAX_WORKFLOW_NODES:-100}
+      MAX_WORKFLOW_EDGES: ${MCP_MAX_WORKFLOW_EDGES:-200}
+      MAX_VARIABLES: ${MCP_MAX_VARIABLES:-50}
+      MAX_TOOLS_PER_AGENT: ${MCP_MAX_TOOLS_PER_AGENT:-20}
+
+      # Tenant Management
+      ALLOWED_TENANTS: ${MCP_ALLOWED_TENANTS:-}  # Comma-separated tenant UUIDs (empty = all)
+
+      # OpenTelemetry (optional)
+      ENABLE_OTEL: ${MCP_ENABLE_OTEL:-false}
+      OTLP_ENDPOINT: ${MCP_OTLP_ENDPOINT:-}
+
+    ports:
+      - "${EXPOSE_MCP_SERVER_PORT:-3000}:3000"
+
+    networks:
+      - default
+      - ssrf_proxy_network
+
+    depends_on:
+      - api
+      - db
+      - redis
+
+    volumes:
+      # Optional: Mount volume for export/import files
+      - ./mcp_storage:/app/storage
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+networks:
+  default:
+    external: false
+  ssrf_proxy_network:
+    external: true
+
+volumes:
+  mcp_storage:
+    driver: local
