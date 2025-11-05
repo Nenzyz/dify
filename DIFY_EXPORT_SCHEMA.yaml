@@ -1,0 +1,601 @@
+# Dify Export Schema v1.0
+# Complete schema for exporting and importing Dify applications, workflows, and knowledge bases
+# Compatible with MCP Server integration
+
+version: "1.0"
+export_timestamp: "2025-01-05T00:00:00Z"
+schema_version: "1.0"
+
+# Metadata about the export
+metadata:
+  export_type: "full" # full, app_only, workflow_only, dataset_only
+  export_id: "uuid"
+  tenant_id: "uuid"
+  tenant_name: "string"
+  exported_by: "uuid"
+  exported_by_name: "string"
+  description: "string"
+  tags:
+    - "tag1"
+    - "tag2"
+
+# Applications export
+applications:
+  - id: "uuid"
+    name: "string"
+    description: "string"
+    mode: "completion|workflow|chat|advanced-chat|agent-chat|channel|rag-pipeline"
+    icon_type: "image|emoji"
+    icon: "string"
+    icon_background: "string"
+    status: "normal"
+    enable_site: boolean
+    enable_api: boolean
+    api_rpm: integer
+    api_rph: integer
+    is_public: boolean
+    is_universal: boolean
+    use_icon_as_answer_icon: boolean
+    max_active_requests: integer
+    tracing: "json_string|null"
+
+    # Tags for the app
+    tags:
+      - id: "uuid"
+        name: "string"
+        type: "app"
+
+    # App configuration
+    model_config:
+      provider: "string"
+      model_id: "string"
+
+      # Model parameters
+      configs:
+        temperature: float
+        top_p: float
+        max_tokens: integer
+        presence_penalty: float
+        frequency_penalty: float
+
+      # User-facing settings
+      opening_statement: "string"
+      suggested_questions:
+        - "question 1"
+        - "question 2"
+      suggested_questions_after_answer:
+        enabled: boolean
+
+      # Voice settings
+      speech_to_text:
+        enabled: boolean
+        provider: "string"
+        model: "string"
+      text_to_speech:
+        enabled: boolean
+        provider: "string"
+        voice: "string"
+        language: "string"
+
+      # Features
+      more_like_this:
+        enabled: boolean
+      sensitive_word_avoidance:
+        enabled: boolean
+        type: "moderation|keywords"
+        configs: []
+
+      # Prompts
+      pre_prompt: "string"
+      prompt_type: "simple|advanced"
+      chat_prompt_config:
+        system: "string"
+        user: "string"
+        assistant: "string"
+      completion_prompt_config:
+        prompt: "string"
+
+      # Agent configuration
+      agent_mode:
+        enabled: boolean
+        strategy: "function_call|react|null"
+        tools:
+          - provider_type: "builtin|api|workflow|mcp"
+            provider_id: "string"
+            tool_name: "string"
+            tool_id: "string|null"
+        prompt: "string|null"
+
+      # User input form
+      user_input_form:
+        - type: "text|number|select|textarea|file"
+          variable: "string"
+          label: "string"
+          required: boolean
+          default: "any"
+          max_length: integer
+          options:
+            - "option1"
+            - "option2"
+
+      # Dataset configuration
+      dataset_query_variable: "string|null"
+      dataset_configs:
+        retrieval_model: "single|multiple"
+        datasets:
+          - dataset_id: "uuid"
+            dataset_name: "string"
+      retriever_resource:
+        enabled: boolean
+
+      # External data tools
+      external_data_tools:
+        - type: "api"
+          config: {}
+
+      # File upload settings
+      file_upload:
+        enabled: boolean
+        number_limits: integer
+        allowed_file_types:
+          - "image"
+          - "document"
+          - "audio"
+          - "video"
+        allowed_file_extensions:
+          - ".pdf"
+          - ".docx"
+        allowed_file_upload_methods:
+          - "remote_url"
+          - "local_file"
+
+    # Workflow (if mode is workflow, advanced-chat, agent-chat)
+    workflow:
+      id: "uuid"
+      type: "workflow|chat|rag-pipeline"
+      version: "draft"
+      marked_name: "string"
+      marked_comment: "string"
+
+      # Environment variables
+      environment_variables:
+        - id: "uuid"
+          name: "string"
+          type: "string|integer|float|secret"
+          value: "any"
+          value_type: "string|number|secret"
+
+      # Conversation variables (for chat workflows)
+      conversation_variables:
+        - id: "uuid"
+          name: "string"
+          type: "string|number|array|object"
+          value: "any"
+          value_type: "string"
+          description: "string"
+
+      # RAG pipeline variables (for rag-pipeline mode)
+      rag_pipeline_variables:
+        - variable: "string"
+          label: "string"
+          type: "text-input"
+          required: boolean
+          max_length: integer
+
+      # Workflow graph
+      graph:
+        nodes:
+          - id: "string"
+            position:
+              x: float
+              y: float
+            type: "start|end|llm|code|template|question-classifier|if-else|http-request|tool|knowledge-retrieval|variable-assigner|variable-aggregator|iteration|loop|parameter-extractor|answer"
+            data:
+              title: "string"
+              type: "string"
+              # Node-specific configuration
+              # Start node
+              variables:
+                - type: "text-input|paragraph|number|select|file"
+                  variable: "string"
+                  label: "string"
+                  required: boolean
+                  max_length: integer
+                  default: "any"
+                  options:
+                    - "option1"
+              # LLM node
+              model:
+                provider: "string"
+                name: "string"
+                mode: "chat|completion"
+                completion_params:
+                  temperature: float
+                  max_tokens: integer
+              context:
+                enabled: boolean
+                variable_selector:
+                  - "node_id"
+                  - "variable_name"
+              prompt_template:
+                - role: "system|user|assistant"
+                  text: "string"
+              memory:
+                role_prefix:
+                  user: "string"
+                  assistant: "string"
+                window:
+                  enabled: boolean
+                  size: integer
+              vision:
+                enabled: boolean
+              # Code node
+              code_language: "python3|javascript"
+              code: "string"
+              outputs:
+                output_name:
+                  type: "string|number|object|array"
+              # HTTP Request node
+              method: "GET|POST|PUT|DELETE|PATCH"
+              url: "string"
+              authorization:
+                type: "none|api-key|bearer"
+                config: {}
+              headers: "string"
+              params: "string"
+              body:
+                type: "none|form-data|json|raw-text"
+                data: "string"
+              # Tool node
+              provider_id: "string"
+              provider_type: "builtin|api|workflow"
+              tool_name: "string"
+              tool_parameters:
+                param_name: "value"
+              # Knowledge Retrieval node
+              dataset_ids:
+                - "uuid"
+              retrieval_mode: "single|multiple"
+              # If-Else node
+              conditions:
+                - variable_selector:
+                    - "node_id"
+                    - "variable_name"
+                  comparison_operator: "is|is not|contains|not contains|start with|end with|is empty|is not empty"
+                  value: "string"
+              logical_operator: "and|or"
+              # Iteration node
+              iterator_selector:
+                - "node_id"
+                - "variable_name"
+              output_selector:
+                - "node_id"
+                - "variable_name"
+              # Loop node
+              limit: integer
+              # Answer node
+              answer: "string"
+              variables:
+                - value_selector:
+                    - "node_id"
+                    - "variable_name"
+            # Loop/Iteration context
+            isInLoop: boolean
+            isInIteration: boolean
+            loop_id: "string|null"
+            iteration_id: "string|null"
+
+        edges:
+          - id: "string"
+            source: "string"
+            target: "string"
+            sourceHandle: "string|null"
+            targetHandle: "string|null"
+            data: {}
+
+      # Features
+      features:
+        file_upload:
+          enabled: boolean
+          number_limits: integer
+          allowed_file_types:
+            - "image"
+            - "document"
+          allowed_file_extensions:
+            - ".pdf"
+          allowed_file_upload_methods:
+            - "remote_url"
+            - "local_file"
+        opening_statement: "string|null"
+        suggested_questions:
+          - "question"
+        suggested_questions_after_answer:
+          enabled: boolean
+        speech_to_text:
+          enabled: boolean
+        text_to_speech:
+          enabled: boolean
+        retriever_resource:
+          enabled: boolean
+        sensitive_word_avoidance:
+          enabled: boolean
+        text_to_speech:
+          enabled: boolean
+          language: "string"
+          voice: "string"
+
+    # Site configuration (if enable_site is true)
+    site:
+      title: "string"
+      icon_type: "image|emoji"
+      icon: "string"
+      icon_background: "string"
+      description: "string"
+      default_language: "en-US"
+      chat_color_theme: "string"
+      chat_color_theme_inverted: boolean
+      copyright: "string"
+      privacy_policy: "string"
+      custom_disclaimer: "string"
+      show_workflow_steps: boolean
+      use_icon_as_answer_icon: boolean
+      customize_domain: "string|null"
+      customize_token_strategy: "must|allow|not_allow"
+      prompt_public: boolean
+      code: "string"
+
+    created_at: "datetime"
+    updated_at: "datetime"
+    created_by: "uuid"
+    created_by_name: "string"
+
+# Knowledge Bases (Datasets)
+datasets:
+  - id: "uuid"
+    name: "string"
+    description: "string"
+    provider: "vendor|external"
+    permission: "only_me|all_team|partial_team"
+    data_source_type: "upload_file|notion_import|website_crawl"
+    indexing_technique: "high_quality|economy"
+    embedding_model: "string"
+    embedding_model_provider: "string"
+    runtime_mode: "general"
+    chunk_structure: "paragraph|qa"
+    enable_api: boolean
+    built_in_field_enabled: boolean
+
+    # Custom metadata fields
+    doc_metadata:
+      - id: "uuid"
+        name: "string"
+        type: "string|number|url"
+
+    # Retrieval configuration
+    retrieval_model:
+      search_method: "semantic_search|full_text|hybrid_search|invertedIndex|keyword_search"
+      reranking_enable: boolean
+      reranking_model:
+        reranking_provider_name: "string"
+        reranking_model_name: "string"
+      top_k: integer
+      score_threshold_enabled: boolean
+      score_threshold: float
+
+    # Icon
+    icon_info:
+      type: "image|emoji"
+      icon: "string"
+      background: "string"
+
+    # Tags
+    tags:
+      - id: "uuid"
+        name: "string"
+        type: "knowledge"
+
+    # Documents
+    documents:
+      - id: "uuid"
+        name: "string"
+        data_source_type: "upload_file|notion_import|website_crawl"
+        data_source_info:
+          upload_file_id: "uuid|null"
+          url: "string|null"
+          notion_page_id: "string|null"
+        doc_type: "txt|md|pdf|html|docx|pptx|xlsx|json|csv"
+        doc_form: "text_model|qa_model"
+        doc_language: "en|zh|es|fr|de|ja|ko|pt|ru|ar|tr"
+        position: integer
+        enabled: boolean
+        word_count: integer
+        tokens: integer
+        indexing_status: "waiting|parsing|cleaning|splitting|indexing|completed|error|paused"
+        error: "string|null"
+
+        # Custom metadata
+        doc_metadata:
+          field_name: "field_value"
+
+        # Processing rules
+        processing_rule:
+          mode: "automatic|custom"
+          rules:
+            pre_processing_rules:
+              - id: "remove_extra_spaces"
+                enabled: boolean
+              - id: "remove_urls_emails"
+                enabled: boolean
+            segmentation:
+              separator: "\\n"
+              max_tokens: integer
+
+        # Segments (chunks)
+        segments:
+          - id: "uuid"
+            position: integer
+            content: "string"
+            answer: "string|null"
+            keywords:
+              - "keyword"
+            word_count: integer
+            tokens: integer
+            hit_count: integer
+            enabled: boolean
+            status: "completed"
+            index_node_hash: "string"
+
+        created_at: "datetime"
+        updated_at: "datetime"
+
+    created_at: "datetime"
+    updated_at: "datetime"
+    created_by: "uuid"
+    created_by_name: "string"
+
+# Tools Configuration
+tools:
+  # API Tools
+  api_tools:
+    - id: "uuid"
+      name: "string"
+      icon: "string"
+      description: "string"
+      schema_type: "openapi|swagger"
+      schema: "yaml_or_json_string"
+      credentials:
+        auth_type: "none|api-key|bearer"
+        config: {}
+      privacy_policy: "string"
+      custom_disclaimer: "string"
+      tools:
+        - name: "string"
+          operation_id: "string"
+          summary: "string"
+          description: "string"
+          parameters:
+            - name: "string"
+              type: "string|number|boolean|array|object"
+              required: boolean
+              description: "string"
+              schema: {}
+      created_at: "datetime"
+
+  # Builtin Tools (credentials only, definitions are hardcoded)
+  builtin_tools:
+    - provider: "google|bing|wikipedia|dalle|stable_diffusion|wolframalpha"
+      credentials:
+        auth_type: "api-key"
+        config:
+          api_key: "encrypted_or_masked"
+      created_at: "datetime"
+
+  # Workflow Tools (published workflows as tools)
+  workflow_tools:
+    - id: "uuid"
+      name: "string"
+      label: "string"
+      icon: "string"
+      description: "string"
+      app_id: "uuid"
+      version: "string"
+      parameter_configuration:
+        - name: "string"
+          type: "string|number|boolean|select"
+          required: boolean
+          description: "string"
+          default: "any"
+      privacy_policy: "string"
+      created_at: "datetime"
+
+  # MCP Tools
+  mcp_tools:
+    - id: "uuid"
+      name: "string"
+      server_identifier: "string"
+      server_url: "encrypted_url"
+      icon: "string|null"
+      credentials: "encrypted_json"
+      timeout: float
+      sse_read_timeout: float
+      headers: "encrypted_json|null"
+      tools: "json_array"
+      created_at: "datetime"
+
+# Execution History (optional, for debugging/analysis)
+execution_history:
+  workflow_runs:
+    - id: "uuid"
+      workflow_id: "uuid"
+      triggered_from: "debugging|app-run"
+      version: "string"
+      inputs: {}
+      outputs: {}
+      status: "running|succeeded|failed|stopped|partial_succeeded"
+      error: "string|null"
+      elapsed_time: float
+      total_tokens: integer
+      total_steps: integer
+      created_at: "datetime"
+      finished_at: "datetime|null"
+
+      # Node executions
+      node_executions:
+        - id: "uuid"
+          node_id: "string"
+          node_type: "string"
+          title: "string"
+          index: integer
+          inputs: {}
+          outputs: {}
+          status: "running|succeeded|failed"
+          error: "string|null"
+          elapsed_time: float
+          execution_metadata:
+            total_tokens: integer
+            total_price: float
+            currency: "string"
+          created_at: "datetime"
+          finished_at: "datetime|null"
+
+  conversations:
+    - id: "uuid"
+      app_id: "uuid"
+      name: "string"
+      status: "normal"
+      inputs: {}
+      created_at: "datetime"
+
+      messages:
+        - id: "uuid"
+          query: "string"
+          answer: "string"
+          message_tokens: integer
+          answer_tokens: integer
+          total_price: float
+          currency: "string"
+          status: "normal|error"
+          error: "string|null"
+          agent_based: boolean
+          workflow_run_id: "uuid|null"
+          created_at: "datetime"
+
+# Schema validation rules
+validation_rules:
+  required_fields:
+    - metadata.export_type
+    - metadata.tenant_id
+    - version
+
+  field_constraints:
+    app_name_max_length: 255
+    description_max_length: 65535
+    max_nodes_per_workflow: 100
+    max_edges_per_workflow: 200
+    max_variables: 50
+    max_tools_per_agent: 20
+
+  supported_versions:
+    - "1.0"
+
+  backward_compatibility: true
