@@ -6,6 +6,62 @@ This document outlines a comprehensive plan for building a Model Context Protoco
 
 ---
 
+## Target Version Compatibility
+
+**This MCP server targets Dify version 1.8.1** (stable release, September 2025).
+
+### Why Version 1.8.1?
+
+- **Stability**: Version 1.8.1 represents the last stable release before major architectural changes
+- **Production-Ready**: Widely deployed in production environments
+- **Complete SQLAlchemy 2.0 Migration**: Database layer modernization completed
+- **Proven Feature Set**: All core features (workflows, agents, datasets) fully stable
+
+### Version 1.9.x Compatibility Notes
+
+Dify versions 1.9.0+ introduced **breaking architectural changes**:
+
+1. **Knowledge Pipeline** (v1.9.0+): Complete redesign of document ingestion system
+   - *MCP Impact*: Dataset management tools in this plan use pre-1.9.0 APIs
+   - *Migration Path*: V2 of MCP server can add Knowledge Pipeline support
+
+2. **Queue-based Graph Engine** (v1.9.0+): New workflow execution system
+   - *MCP Impact*: Workflow execution monitoring uses pre-1.9.0 patterns
+   - *Compatibility*: Basic workflow execution works, advanced queue features unavailable
+
+3. **Weaviate Client Upgrade** (v1.9.2): Client v3 → v4, server minimum 1.24.0+
+   - *MCP Impact*: If using Weaviate, ensure client v3 compatibility
+   - *Workaround*: MCP server accesses Dify's API layer, not vector DB directly
+
+4. **Datasource Credentials Migration** (v1.9.0+): New credential management system
+   - *MCP Impact*: Dataset credentials use pre-1.9.0 schema
+   - *Required*: Manual migration needed if upgrading Dify to 1.9.0+
+
+### Upgrade Path for 1.9.x Users
+
+If you're running Dify 1.9.x and want to use this MCP server:
+
+**Option 1: Downgrade to 1.8.1 (Recommended for Production)**
+```bash
+# Backup your data first!
+docker-compose down
+git checkout 1.8.1
+docker-compose up -d
+```
+
+**Option 2: Use with Compatibility Limitations**
+- Most features will work (app management, workflow creation, basic datasets)
+- Knowledge Pipeline features unavailable
+- Advanced queue management unavailable
+- Some dataset operations may require schema updates
+
+**Option 3: Wait for MCP Server v1.1**
+- Planned support for 1.9.x features in Q2 2026
+- Will include Knowledge Pipeline integration
+- Full queue-based execution monitoring
+
+---
+
 ## 1. Project Overview
 
 ### 1.1 Objectives
@@ -149,12 +205,13 @@ MCP resources provide structured access to Dify entities. Pattern: `dify://<enti
 @tool("create_app")
 async def create_app(
     name: str,
-    mode: str,  # "completion|workflow|chat|advanced-chat|agent-chat|rag-pipeline"
+    mode: str,  # "completion|workflow|chat|advanced-chat|agent-chat|channel"
     description: str = "",
     icon: str = "🤖",
     icon_type: str = "emoji"
 ) -> dict:
-    """Create a new Dify application."""
+    """Create a new Dify application (v1.8.1 compatible)."""
+    # Note: "rag-pipeline" mode added in v1.9.0+, not available in 1.8.1
     pass
 
 @tool("update_app")
@@ -186,9 +243,10 @@ async def duplicate_app(app_id: str, new_name: str) -> dict:
 async def create_workflow(
     app_id: str,
     name: str,
-    type: str = "workflow"  # "workflow|chat|rag-pipeline"
+    type: str = "workflow"  # "workflow|chat"
 ) -> dict:
-    """Create a new workflow for an app."""
+    """Create a new workflow for an app (v1.8.1 compatible)."""
+    # Note: "rag-pipeline" type added in v1.9.0+, not available in 1.8.1
     pass
 
 @tool("add_workflow_node")
@@ -1282,7 +1340,8 @@ The phased approach ensures steady progress with clear milestones, while the foc
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2025-01-05
+**Document Version:** 1.1
+**Last Updated:** 2025-11-07
+**Target Dify Version:** 1.8.1
 **Author:** Lead Software Architect
-**Status:** Approved for Implementation
+**Status:** Updated for v1.8.1 Compatibility

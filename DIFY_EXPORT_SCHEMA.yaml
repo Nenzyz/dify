@@ -1,10 +1,12 @@
-# Dify Export Schema v1.0
+# Dify Export Schema v1.1
 # Complete schema for exporting and importing Dify applications, workflows, and knowledge bases
 # Compatible with MCP Server integration
+# Target Dify Version: 1.8.1
 
-version: "1.0"
-export_timestamp: "2025-01-05T00:00:00Z"
-schema_version: "1.0"
+version: "1.1"
+export_timestamp: "2025-11-07T00:00:00Z"
+schema_version: "1.1"
+dify_version: "1.8.1"
 
 # Metadata about the export
 metadata:
@@ -24,7 +26,8 @@ applications:
   - id: "uuid"
     name: "string"
     description: "string"
-    mode: "completion|workflow|chat|advanced-chat|agent-chat|channel|rag-pipeline"
+    mode: "completion|workflow|chat|advanced-chat|agent-chat|channel"
+    # Note: "rag-pipeline" mode added in Dify v1.9.0+, not available in v1.8.1
     icon_type: "image|emoji"
     icon: "string"
     icon_background: "string"
